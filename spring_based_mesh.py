@@ -1,6 +1,6 @@
 __author__ = 'lukas'
 
-from mesh import *
+from triangularmesh.mesh import *
 from dolfin import *
 
 mesh = TriangularMesh()
