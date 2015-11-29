@@ -42,6 +42,7 @@ class TriangularMesh(object):
             pass
 
     def refine_all_with_bigger_error(self, errors, limit, refine_method='longest edge'):
+	"""refines all elements that have bigger error than limit"""
         triangles_to_refine = []
 
         for i, triangle in enumerate(self.face_list):
@@ -55,6 +56,7 @@ class TriangularMesh(object):
 
 
     def refine_all(self, refine_method='longest edge'):
+	"""refines all elements"""
         if 'longest' in refine_method:
             self.refine_by_longest_edge(range(len(self.face_list)))
         else:
@@ -62,10 +64,12 @@ class TriangularMesh(object):
         self.full_refines += 1
 
     def refine_by_longest_edge(self, faces):
+	"""refines given elements/faces by the longest edge method"""
         self.node_list, self.face_list = self.__meshrefiner.refine_by_longest_edge(faces, self.node_list, self.face_list)
 
 
     def to_dolfin_mesh(self):
+	"""returns a mesh in dolfin/FEniCS usable format"""
         self.update_index()
         mesh = Mesh()
         editor = MeshEditor()
@@ -84,6 +88,7 @@ class TriangularMesh(object):
         return mesh
 
     def save_to_file(self, filename):
+	"""saves mesh to "filename".xml, boundaries are saved to "filename"_facets.xml"""
         file1 = File(filename+'.xml')
         file2 = File(filename+'_facets.xml')
 
@@ -113,6 +118,7 @@ class TriangularMesh(object):
 
 
     def adaptive_refine(self, errors_prev, errors_now, ratio=0.2, acceptable_error=1e-5):
+	"""adaptively refines the mesh using the Babuska-Rheinboldt strategy"""
         triangles_to_refine = []
         num_triangles_needed = int(ceil(ratio*len(self.face_list)))
 
@@ -171,6 +177,7 @@ class TriangularMesh(object):
         self.refine_by_longest_edge(triangles_to_refine)
 
     def refine_by_delaunay(self, triangles):
+	"""refines given elements by the delaunay refinement method"""
         p = self.node_list
         t = self.face_list
 
@@ -191,6 +198,7 @@ class TriangularMesh(object):
             self.face_list[i].index = i
 
     def get_diameters(self):
+	"""returns the diameter of all the faces"""
         return [face.diameter for face in self.face_list]
 
     def get_faces(self):

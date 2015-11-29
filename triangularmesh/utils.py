@@ -147,26 +147,6 @@ def unique2d(a):
     idx = np.unique(b,return_index=True)[1]
     return a[idx]
 
-#PLOTTEN DER DIST FCT
-"""x = np.arange(-1, 2, .01)
-y = np.arange(-1,2, .01)
-x, y = np.meshgrid(x,y)
-
-r = np.array([[x[i,j], y[i,j]] for i in range(x.shape[0]) for j in range(x.shape[0])])
-
-dist = fd(r)
-
-dist[dist < 0] = -1
-dist[dist > 0] = 1
-
-dist = dist.reshape(x.shape)
-
-plt.pcolormesh(x,y,dist, cmap='RdBu', vmin = -2, vmax=2)
-
-plt.colorbar()
-plt.show()"""
-
-__author__ = 'lukas'
 
 def length(p):
   return np.sqrt(np.sum(p**2))
