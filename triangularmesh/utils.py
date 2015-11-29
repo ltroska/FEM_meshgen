@@ -4,68 +4,15 @@ from dolfin import *
 def length(p):
     return p[0]*p[0]+p[1]*p[1]
 
-class Face(object):
-    def __init__(self, node_list, diameter = 0, parent_diameter = 0, parent_index = -1):
-        if type(node_list) is not int:
-            self.nodes = node_list
-            self.parent_diameter = parent_diameter
-            self.diameter = diameter
-        else:
-            self.nodes = [node_list, diameter, parent_diameter]
-            self.parent_diameter = 0
-            self.diameter = 0
-
-        self.index = -1
-        self.parent_index = parent_index
-
-    def __eq__(self, other):
-        return set(self) == set(other)
-
-    def __str__(self):
-        return '[' + str(self.nodes[0]) + ',' + str(self.nodes[1]) + ',' + str(self.nodes[2]) + ']'
-
-    def __repr__(self):
-        return '[' + str(self.nodes[0]) + ',' + str(self.nodes[1]) + ',' + str(self.nodes[2]) + ']'
-
-    def __getitem__(self, item):
-        return self.nodes[item]
-
-    def __setitem__(self, key, value):
-        self.nodes[key] = value
-
-    class __metaclass__(type):
-        def __iter__(self):
-            for t in self.nodes:
-                yield t
-
-class Node(object):
-    def __init__(self, coordinates):
-        self.coordinates = np.array(coordinates)
-        self.faces = []
-
-    def __eq__(self, other):
-        return (self.coordinates == other.coordinates).all()
-
-    def __str__(self):
-        return str(self.coordinates)
-
-    def __repr__(self):
-        return str(self.coordinates)
-
-    def __getitem__(self, item):
-        return self.coordinates[item]
-
-    def __setitem__(self, key, value):
-        self.coordinates[key] = value
-
-    class __metaclass__(type):
-        def __iter__(self):
-            for t in self.coordinates:
-                yield t
+def closest_node(node, nodes):
+    nodes = np.asarray(nodes)
+    dist_2 = np.sqrt(np.sum((nodes - node)**2, axis=1))
+    return np.min(dist_2)
 
 
 def compute_diameter(px, py, pz):
     return max(length(px-py), length(px-pz), length(py-pz))
+
 
 def energy_errornorm(u_e, u, Ve):
     u_Ve = interpolate(u, Ve)
@@ -150,3 +97,31 @@ def unique2d(a):
 
 def length(p):
   return np.sqrt(np.sum(p**2))
+
+
+
+"""
+class Node(object):
+    def __init__(self, coordinates):
+        self.coordinates = np.array(coordinates)
+        self.faces = []
+
+    def __eq__(self, other):
+        return (self.coordinates == other.coordinates).all()
+
+    def __str__(self):
+        return str(self.coordinates)
+
+    def __repr__(self):
+        return str(self.coordinates)
+
+    def __getitem__(self, item):
+        return self.coordinates[item]
+
+    def __setitem__(self, key, value):
+        self.coordinates[key] = value
+
+    class __metaclass__(type):
+        def __iter__(self):
+            for t in self.coordinates:
+                yield t"""

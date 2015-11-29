@@ -2,15 +2,11 @@ __author__ = 'lukas'
 
 from meshrefiner import *
 from dolfin import *
-from utils import unique2d, Face
+from utils import unique2d, closest_node
+from face import Face
 import distmesh as dm
 import scipy.spatial as spspatial
 from math import log, pow, ceil
-
-def closest_node(node, nodes):
-    nodes = np.asarray(nodes)
-    dist_2 = np.sqrt(np.sum((nodes - node)**2, axis=1))
-    return np.min(dist_2)
 
 class TriangularMesh(object):
     def __init__(self):
