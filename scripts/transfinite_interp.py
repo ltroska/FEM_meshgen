@@ -21,14 +21,13 @@ c2 = np.linalg.solve(A,y)
 x = np.arange(0, 1.05, 0.05)
 
 
-
 def f_rechts(y):
     return c1[0]+c1[1]*y+c1[2]*y**2
 
 def f_links(y):
     return c2[0]+c2[1]*y+c2[2]*y**2
 
-def boundary(chi, nu):
+def boundary1(chi, nu):
     if type(nu) is not np.ndarray and type(chi) is not np.ndarray and nu == 0 and chi == 0:
         return 0, f_unten(0)
     if type(nu) is not np.ndarray and nu == 0:
@@ -40,7 +39,8 @@ def boundary(chi, nu):
     if chi == 1:
         return f_rechts(nu), nu*f_oben(1)+(1-nu)*f_unten(1)
 
-def grid(chi, nu):
+
+def grid(boundary, chi, nu):
     chiarr = np.array([1-chi, chi])
     nuarr = np.array([1-nu, nu])
     rnuarrx = np.array([boundary(0,nu)[0], boundary(1, nu)[0]])
@@ -57,8 +57,7 @@ def grid(chi, nu):
 
     return x, y
 
-
-def first2():
+def first(boundary):
     plt.plot(boundary(x, 0)[0], boundary(x,0)[1], color="black")
     plt.plot(boundary(x,1)[0], boundary(x,1)[1], color="black")
 
@@ -66,9 +65,9 @@ def first2():
     plt.plot(boundary(1,x)[0], boundary(1,x)[1], color="black")
     plt.show()
 
-def x_interp2():
-    plt.plot(boundary(x, 0)[0], boundary(x,0)[1], color="black")
-    plt.plot(boundary(x,1)[0], boundary(x,1)[1], color="black")
+def x_interp(boundary):
+    plt.plot(boundary(x, 0)[0], boundary(x,0)[1], color="green")
+    plt.plot(boundary(x,1)[0], boundary(x,1)[1], color="green")
 
 
     xbegin, ybegin = np.array(boundary(x,0)[0]),np.array(boundary(x,0)[1])
@@ -79,12 +78,14 @@ def x_interp2():
         ynow = r*ybegin+(1-r)*yend
         plt.plot(xnow, ynow, color="red")
 
-    for r in x:
-        plt.plot([r, r], [f_unten(r), f_oben(r)], color="black")
+    for i in range(0,len(x)):
+        a, b = boundary(x,0)[0][i],boundary(x,0)[1][i]
+        c, d = boundary(x,1)[0][i],boundary(x,1)[1][i]
+        plt.plot([a,c], [b,d], color="black")
 
     plt.show()
 
-def y_interp2():
+def y_interp(boundary):
 
     plt.plot(boundary(0, x)[0], boundary(0,x)[1], color="black")
     plt.plot(boundary(1,x)[0], boundary(1,x)[1], color="black")
@@ -104,25 +105,25 @@ def y_interp2():
 
     plt.show()
 
-def whole2():
+def whole(boundary):
     plt.plot(boundary(x, 0)[0], boundary(x,0)[1], color="black")
     plt.plot(boundary(x,1)[0], boundary(x,1)[1], color="black")
     plt.plot(boundary(0, x)[0], boundary(0,x)[1], color="black")
     plt.plot(boundary(1,x)[0], boundary(1,x)[1], color="black")
 
     for r in x:
-        xnow = [grid(r, t)[0] for t in x]
-        ynow = [grid(r, t)[1] for t in x]
+        xnow = [grid(boundary, r, t)[0] for t in x]
+        ynow = [grid(boundary, r, t)[1] for t in x]
         plt.plot(xnow, ynow, color="black")
-        xnow = [grid(t, r)[0] for t in x]
-        ynow = [grid(t, r)[1] for t in x]
+        xnow = [grid(boundary, t, r)[0] for t in x]
+        ynow = [grid(boundary, t, r)[1] for t in x]
         plt.plot(xnow, ynow, color="black")
 
     plt.show()
 
 
 
-first2()
-x_interp2()
-y_interp2()
-whole2()
+first(boundary1)
+x_interp(boundary1)
+y_interp(boundary1)
+whole(boundary1)
