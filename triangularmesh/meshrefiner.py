@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.spatial as spspatial
-from utils import Face, compute_diameter, length
+from utils import compute_diameter, length
+from face import Face
 
 __author__ = 'lukas'
 
