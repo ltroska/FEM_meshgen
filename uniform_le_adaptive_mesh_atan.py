@@ -5,7 +5,14 @@ from triangularmesh.utils import *
 from triangularmesh.meshquality import *
 from dolfin import *
 import math
-import matplotlib.pyplot as plt
+
+class ExactSolution(Expression):
+    def eval(self, values, x):
+        if (x[0])-0.3 == 0:
+            values[0] = 1
+        else:
+            values[0] = math.atan((x[1]-0.7)/(x[0]-0.3))
+        return values
 
 mesh = TriangularMesh()
 
@@ -38,19 +45,19 @@ maxerr = 0.2
 
 errors_old = []
 
-output = file("convergence/uniform_le_adaptive.dat", 'w')
+output = file("convergence/uniform_le_adaptive_atan.dat", 'w')
 
 for i in range(30):
     fmesh = mesh.to_dolfin_mesh()
-    file = File('meshes/uniform_le_adaptive_'+str(i)+'.pvd')
+    file = File('meshes/uniform_le_adaptive_atan_'+str(i)+'.pvd')
     file << fmesh
 
     V = FunctionSpace(fmesh, 'Lagrange', 1)
     Ve = FunctionSpace(fmesh, 'Lagrange', 3)
 
     # Define boundary conditions
-    u0 = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
-    u_e = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
+    u0 = ExactSolution()
+    u_e = u0
 
     def u0_boundary(x, on_boundary):
         return on_boundary
@@ -60,7 +67,7 @@ for i in range(30):
     # Define variational problem
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Expression('-40000*exp(-100 * ((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))*(x[0]*x[0]-0.5*x[0]+x[1]*x[1]-0.5*x[1]+0.115)')
+    f = Constant(0)
     a = inner(nabla_grad(u), nabla_grad(v))*dx
     L = f*v*dx
 
@@ -75,7 +82,7 @@ for i in range(30):
 
     output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
 
-    if ene < 0.1:
+    if ene < 0.2:
         break
 
     errors_now, _ = computeErrorsOnCells(u_e, u, Ve, fmesh)
@@ -92,6 +99,9 @@ for i in range(30):
         #plt.show()
         mesh.adaptive_refine(errors_old, errors_now, ratio = 0.25)
         #mesh.refine_all_by_longest_edge()
+
+    if i > 5:
+        break
 
     errors_old = errors_now
 print "#nodes = ", len(mesh.get_nodes()), "#triangles = " , len(mesh.get_faces())

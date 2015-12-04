@@ -49,7 +49,7 @@ plt.xlabel("#Knoten")
 plt.ylabel("Fehler (Energienorm)")
 
 
-plt.legend(loc='upper right')
+plt.legend(loc='best')
 plt.show()
 
 

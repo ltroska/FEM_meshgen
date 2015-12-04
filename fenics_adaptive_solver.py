@@ -49,11 +49,11 @@ L = f*v*dx
 u = Function(V)
 
 # Define goal functional (quantity of interest)
-M = u*u*dx
+M = u*dx()
 
 # Define error tolerance
 #tol = 0.00005
-tol = 0.00005
+tol = 0.0002
 
 # Solve equation a = L with respect to u and the given boundary
 # conditions, such that the estimated error (measured in M) is less
@@ -61,7 +61,6 @@ tol = 0.00005
 problem = LinearVariationalProblem(a, L, u, bc)
 solver = AdaptiveLinearVariationalSolver(problem, M)
 solver.parameters["error_control"]["dual_variational_solver"]["linear_solver"] = "cg"
-solver.parameters["error_control"]["dual_variational_solver"]["symmetric"] = True
 solver.solve(tol)
 
 solver.summary()

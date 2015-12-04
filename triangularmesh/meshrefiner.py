@@ -1,6 +1,5 @@
 import numpy as np
-import scipy.spatial as spspatial
-from utils import compute_diameter, length
+from utils import compute_diameter, length2
 from face import Face
 
 __author__ = 'lukas'
@@ -56,9 +55,9 @@ class MeshRefiner(object):
         xz = pz-px
         yz = pz-py
 
-        lxy = length(xy)
-        lxz = length(xz)
-        lyz = length(yz)
+        lxy = length2(xy)
+        lxz = length2(xz)
+        lyz = length2(yz)
 
         if lxy >= lxz and lxy >= lyz:
             p, t, non_conforming_edge = self.__split_triangle(x, z, y, p, t, triangle)
@@ -96,9 +95,9 @@ class MeshRefiner(object):
         xz = pz-px
         yz = pz-py
 
-        lxy = length(xy)
-        lxz = length(xz)
-        lyz = length(yz)
+        lxy = length2(xy)
+        lxz = length2(xz)
+        lyz = length2(yz)
 
         if lxy >= lxz and lxy >= lyz:
             p, t, _ = self.__split_triangle(x, z, y, p, t, triangleIndex)

@@ -1,6 +1,7 @@
 __author__ = 'lukas'
 
 from triangularmesh.mesh import *
+from triangularmesh.utils import *
 from dolfin import *
 import math
 import matplotlib.pyplot as plt
@@ -74,7 +75,7 @@ for i in range(10):
     print "Energy error = ", ene
     output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
 
-    if ene < 0.2:
+    if ene < 0.1:
         break
 
     errors_now, _ = computeErrorsOnCells(u_e, u, Ve, fmesh)

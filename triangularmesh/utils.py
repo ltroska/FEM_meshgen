@@ -1,14 +1,35 @@
 import numpy as np
 from dolfin import *
 
-def length(p):
-    return p[0]*p[0]+p[1]*p[1]
+def length2(p):
+    return np.sum(p**2)
 
 def closest_node(node, nodes):
     nodes = np.asarray(nodes)
     dist_2 = np.sqrt(np.sum((nodes - node)**2, axis=1))
     return np.min(dist_2)
 
+def two_nearest(node, nodes):
+    nodes = np.asarray(nodes)
+    dist_2 = np.sqrt(np.sum((nodes - node)**2, axis=1))
+    this = np.argmin(dist_2)
+    dist_2[this] += 100000
+    first = np.argmin(dist_2)
+    dist_2[first] += 100000
+    second = np.argmin(dist_2)
+
+    return first, second
+
+def halton_sequence(index, base):
+    result = 0
+    f = 1.
+    i = index
+    while i > 0:
+        f = f/base
+        result = result + f * (i % base)
+        i = i/base
+
+    return result
 
 def compute_diameter(px, py, pz):
     return max(length(px-py), length(px-pz), length(py-pz))

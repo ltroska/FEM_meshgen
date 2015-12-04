@@ -1,9 +1,9 @@
 __author__ = 'lukas'
 
 from triangularmesh.mesh import *
+from triangularmesh.utils import *
 from dolfin import *
 import math
-import matplotlib.pyplot as plt
 
 
 mesh = TriangularMesh()
