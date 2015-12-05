@@ -27,7 +27,7 @@ fd2= lambda p: np.maximum(dm.drectangle0(p, 0,1, 0,1), -dm.drectangle0(p, 0.5,1,
 P = Expression("4*x[0]+x[1]")
 Q = Expression("x[0]+4*x[1]")
 
-mesh = TriangularMesh.create_elliptic_mesh(20, P, Q, fd2)
+mesh = TriangularMesh.create_elliptic_mesh(15, P, Q, fd2)
 fmesh = mesh.to_dolfin_mesh()
 
 file = File("meshes/elliptic_example.pvd")

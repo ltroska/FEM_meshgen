@@ -6,6 +6,11 @@ from dolfin import *
 import math
 import matplotlib.pyplot as plt
 
+class ExactSolution(Expression):
+    def eval(self,values, x):
+        values[0] = (math.cosh(10*(1-x[0]))+ math.cosh(10*(1-x[1])))/(2* math.cosh(10))
+        return values
+
 mesh = TriangularMesh()
 
 dp = 0.1
@@ -37,7 +42,7 @@ maxerr = 0.2
 
 errors_old = []
 
-output = file("convergence/uniform_le_adaptive_quadratic.dat", 'w')
+output = file("convergence/uniform_le_adaptive_quadratic_cosh.dat", 'w')
 
 
 for i in range(30):
@@ -49,20 +54,19 @@ for i in range(30):
     V2 = FunctionSpace(fmesh, 'Lagrange', 2)
     Ve = FunctionSpace(fmesh, 'Lagrange', 3)
 
-    # Define boundary conditions
-    u0 = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
-    u_e = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
 
     def u0_boundary(x, on_boundary):
         return on_boundary
 
+    u0 = ExactSolution()
+    u_e = u0
     bc = DirichletBC(V, u0, u0_boundary)
 
     # Define variational problem
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Expression('-40000*exp(-100 * ((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))*(x[0]*x[0]-0.5*x[0]+x[1]*x[1]-0.5*x[1]+0.115)')
-    a = inner(nabla_grad(u), nabla_grad(v))*dx
+    f = Constant(0)
+    a = inner(grad(u), grad(v))*dx()+100*u*v*dx
     L = f*v*dx
 
     # Compute solution
@@ -87,7 +91,7 @@ for i in range(30):
     if ene < 0.2:
         print len(mesh.get_nodes()), len(mesh.get_faces()), ene
 
-    if ene < 0.1:
+    if ene < 0.065:
         break
 
 

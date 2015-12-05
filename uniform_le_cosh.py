@@ -1,9 +1,14 @@
 __author__ = 'lukas'
 
 from triangularmesh.mesh import *
-#from dolfin import *
+from triangularmesh.utils import *
+from dolfin import *
 import math
-import matplotlib.pyplot as plt
+
+class ExactSolution(Expression):
+    def eval(self,values, x):
+        values[0] = (math.cosh(10*(1-x[0]))+ math.cosh(10*(1-x[1])))/(2* math.cosh(10))
+        return values
 
 mesh = TriangularMesh()
 
@@ -24,31 +29,34 @@ for i in range(int(math.ceil(1/dp))):
     pv = np.append(pv, [[0, 1-i*dp]], axis=0)
 
 fd = lambda p: dm.dpoly(p, pv)
-fd2 = lambda p: dm.drectangle0(p, 0,1, 0,1)
 
 #mesh = TriangularMesh.create_spring_based_mesh(fd2, [0,1,0,1], .3, element_size_function=dm.huniform)
+mesh = TriangularMesh.create_uniform_mesh(fd, [0,1,0,1], .1, pv)
+
+p = mesh.node_list
+t = mesh.face_list
 
 maxerr = 0.2
 
 errors_old = []
 
-n = 100
-dist = 0.05
+output = file("convergence/uniform_le_cosh.dat", 'w')
 
-for i in range(30):
-    mesh = TriangularMesh.create_random_mesh(fd, [0,1,0,1], n, dist , pv)
+
+for i in range(10):
+    mesh.refine_all()
+    p, t = mesh.get_nodes(), mesh.get_faces()
+
     fmesh = mesh.to_dolfin_mesh()
-    file = File('meshes/random_'+str(i)+'.pvd')
+    file = File('meshes/uniform_le_cosh_'+str(i)+'.pvd')
     file << fmesh
-    plot(fmesh)
-    interactive()
 
     V = FunctionSpace(fmesh, 'Lagrange', 1)
     Ve = FunctionSpace(fmesh, 'Lagrange', 3)
 
     # Define boundary conditions
-    u0 = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
-    u_e = Expression('exp(-100*((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))')
+    u0 = ExactSolution()
+    u_e = u0
 
     def u0_boundary(x, on_boundary):
         return on_boundary
@@ -58,8 +66,8 @@ for i in range(30):
     # Define variational problem
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Expression('-40000*exp(-100 * ((x[0]-0.25)*(x[0]-0.25)+(x[1]-0.25)*(x[1]-0.25)))*(x[0]*x[0]-0.5*x[0]+x[1]*x[1]-0.5*x[1]+0.115)')
-    a = inner(nabla_grad(u), nabla_grad(v))*dx
+    f = Constant(0)
+    a = inner(nabla_grad(u), nabla_grad(v))*dx+100*u*v*dx
     L = f*v*dx
 
     # Compute solution
@@ -70,22 +78,29 @@ for i in range(30):
     print "L2 error = ", l2
     print "Energy error = ", ene
 
-    if l2 < 0.003:
+
+    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
+
+
+    if ene < 0.1:
         break
 
-    n += 100
-    dist /=2
+    errors_now, _ = computeErrorsOnCells(u_e, u, Ve, fmesh)
 
+
+    errors_old = errors_now
+
+print "#nodes = ", len(mesh.get_nodes()), "#triangles = " , len(mesh.get_faces())
 # Plot solution and mesh
-plot(u)
+#plot(u)
 #plot(interpolate(u_e, Ve))
-plot(fmesh)
+#plot(fmesh)
 
 #print errors_now
 
 # Dump solution to file in VTK format
-#file = File('solutions/random_poisson.pvd')
-#file << u
+file = File('solutions/uniform_le_poisson.pvd')
+file << u
 
 # Hold plot
 interactive()

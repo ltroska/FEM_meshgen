@@ -13,6 +13,14 @@ class ExactSolution(Expression):
         else:
             values[0] = math.atan((x[1]-0.7)/(x[0]-0.3))
         return values
+    
+class FExpr(Expression):
+    def eval(self, values, x):
+        if (x[0])-0.3 == 0:
+            values[0] = 1
+        else:
+            values[0] = (2*(x[1] - 0.7))/((x[0] - 0.3)**3*((x[1] - 0.7)**2/(x[0] - 0.3)**2 + 1)) - (2*(x[1] - 0.7)**3)/((x[0] - 0.3)**5*((x[1] - 0.7)**2/(x[0] - 0.3)**2 + 1)**2) - (2*(x[1] - 0.7))/((x[0] - 0.3)**3*((x[1] - 0.7)**2/(x[0] - 0.3)**2 + 1)**2)
+        return values
 
 mesh = TriangularMesh()
 
@@ -67,7 +75,7 @@ for i in range(30):
     # Define variational problem
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Constant(0)
+    f = FExpr()
     a = inner(nabla_grad(u), nabla_grad(v))*dx
     L = f*v*dx
 

@@ -623,6 +623,7 @@ class TriangularMesh(object):
 
         iter_nodes = hanging_nodes.copy()
 
+
         for node in iter_nodes:
             if node in hanging_nodes:
                 for tr in t:
@@ -673,6 +674,26 @@ class TriangularMesh(object):
                 if hanging_nodes[i] > node:
                     hanging_nodes[i] -= 1
 
+        for node in range(len(p)):
+            found = False
+
+            for tr in t:
+                if node in tr:
+                    found = True
+
+
+            if not found:
+                for tr in t:
+                    if tr[0] > node:
+                        tr[0]-=1
+                    if tr[1] > node:
+                        tr[1]-=1
+                    if tr[2] > node:
+                        tr[2] -=1
+
+                p = np.delete(p, node, axis=0)
+
+
 
         if False:
             p = np.append(p , [[0.5, 1]], axis=0)
@@ -683,6 +704,9 @@ class TriangularMesh(object):
 
             a, b= two_nearest([1,0.5], p)
             t = np.append(t, [[a, b, len(p)-1]], axis=0)
+
+        a, b= two_nearest([0.52, 0.5], p)
+        t = np.append(t, [[len(p)-1, a,b]], axis=0)
 
         # remove triangles with centroid outside domain
         pmid = p[t].sum(1) / 3

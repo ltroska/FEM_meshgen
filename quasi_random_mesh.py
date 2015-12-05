@@ -20,7 +20,7 @@ for i in range(int(math.ceil(1/dp))):
 
 fd = lambda p: dm.dpoly(p, pv)
 
-mesh = TriangularMesh.create_quasi_random_mesh(fd, [0,1,0,1], 100, 2, 3, pv)
+mesh = TriangularMesh.create_quasi_random_mesh(fd, [0,1,0,1], 200, 2, 3, pv)
 fmesh = mesh.to_dolfin_mesh()
 
 file = File('meshes/quasi_random.pvd')
