@@ -170,26 +170,15 @@ class TriangularMesh(object):
 
         triangles_to_refine = []
 
-        for i, triangle in enumerate(self.face_list):
-            if errors_now[i] > largest_estimated_error:
-                triangles_to_refine.append(i)
+        indices = range(len(errors_now))
+        indices.sort(key=errors_now.__getitem__, reverse=True)
 
-        if len(triangles_to_refine) <= num_triangles_needed:
-            self.dolfin_mesh = self.to_dolfin_mesh()
+        idx = 0
+        while len(triangles_to_refine) < num_triangles_needed or errors_now[indices[idx]] > largest_estimated_error:
+            if indices[idx] not in triangles_to_refine:
+                triangles_to_refine.append(indices[idx])
 
-        try:
-            while (len(triangles_to_refine) <= num_triangles_needed):
-                for tr in triangles_to_refine:
-                    triangle = self.face_list[tr]
-                    for node in triangle:
-                        for i, new_triangle in enumerate(self.face_list):
-                            if node in new_triangle and i not in triangles_to_refine:
-                                triangles_to_refine.append(i)
-                                if len(triangles_to_refine) >= num_triangles_needed:
-                                    # get out of loop
-                                    raise Exception
-        except:
-            pass
+            idx += 1
 
         print "refining ", len(triangles_to_refine), " of ", len(self.face_list), " edges"
 
