@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import sys
 
 if len(sys.argv) != 12:
-    print "input1 input2 input3 input4 label1 label2 label3 label4 title input5 label5 "
+    print "input1 input2 input3 input4 input5 label1 label2 label3 label4 label5 title"
     sys.exit()
 
 x = []
@@ -12,7 +12,7 @@ for line in open(sys.argv[1]):
     x.append(float(splitline[0]))
     y.append(float(splitline[2]))
 
-plt.plot(x, y, '.r-', label=sys.argv[5], linewidth=1.5)
+plt.plot(x, y, '.r-', label=sys.argv[6], linewidth=1.5)
 
 x = []
 y = []
@@ -21,7 +21,7 @@ for line in open(sys.argv[2]):
     x.append(float(splitline[0]))
     y.append(float(splitline[2]))
 
-plt.plot(x, y, 'xb-', label=sys.argv[6], linewidth=1.5)
+plt.plot(x, y, 'xb-', label=sys.argv[7], linewidth=1.5)
 
 x = []
 y = []
@@ -30,7 +30,7 @@ for line in open(sys.argv[3]):
     x.append(float(splitline[0]))
     y.append(float(splitline[2]))
 
-plt.plot(x, y, 'og-', label=sys.argv[7], linewidth=1.5)
+plt.plot(x, y, 'og-', label=sys.argv[8], linewidth=1.5)
 
 x = []
 y = []
@@ -39,22 +39,22 @@ for line in open(sys.argv[4]):
     x.append(float(splitline[0]))
     y.append(float(splitline[2]))
 
-plt.plot(x, y, 's-', color="purple", label=sys.argv[8], linewidth=1.5)
+plt.plot(x, y, 's-', color="purple", label=sys.argv[9], linewidth=1.5)
 
 x = []
 y = []
-for line in open(sys.argv[10]):
+for line in open(sys.argv[5]):
     splitline = line.split()
     x.append(float(splitline[0]))
     y.append(float(splitline[2]))
 
-plt.plot(x, y, 'p-', color="black", label=sys.argv[11], linewidth=1.5)
+plt.plot(x, y, 'p-', color="black", label=sys.argv[10], linewidth=1.5)
 
 
 ax = plt.gca()
 ax.set_yscale('log')
 ax.set_xscale('log')
-plt.title(sys.argv[9])
+plt.title(sys.argv[11])
 plt.xlabel("#Knoten")
 plt.ylabel("Fehler (Energienorm)")
 
