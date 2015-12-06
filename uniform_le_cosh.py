@@ -38,8 +38,6 @@ t = mesh.face_list
 
 maxerr = 0.2
 
-errors_old = []
-
 output = file("convergence/uniform_le_cosh.dat", 'w')
 
 
@@ -52,7 +50,7 @@ for i in range(10):
     file << fmesh
 
     V = FunctionSpace(fmesh, 'Lagrange', 1)
-    Ve = FunctionSpace(fmesh, 'Lagrange', 3)
+    Ve = FunctionSpace(fmesh, 'Lagrange', 5)
 
     # Define boundary conditions
     u0 = ExactSolution()
@@ -84,11 +82,6 @@ for i in range(10):
 
     if ene < 0.1:
         break
-
-    errors_now, _ = computeErrorsOnCells(u_e, u, Ve, fmesh)
-
-
-    errors_old = errors_now
 
 print "#nodes = ", len(mesh.get_nodes()), "#triangles = " , len(mesh.get_faces())
 # Plot solution and mesh

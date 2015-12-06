@@ -47,12 +47,12 @@ output = file("convergence/uniform_le_adaptive_quadratic_cosh.dat", 'w')
 
 for i in range(30):
     fmesh = mesh.to_dolfin_mesh()
-    file = File('meshes/uniform_le_adaptive_'+str(i)+'.pvd')
+    file = File('meshes/uniform_le_adaptive_quadratic_cosh_'+str(i)+'.pvd')
     file << fmesh
 
     V = FunctionSpace(fmesh, 'Lagrange', 1)
     V2 = FunctionSpace(fmesh, 'Lagrange', 2)
-    Ve = FunctionSpace(fmesh, 'Lagrange', 3)
+    Ve = FunctionSpace(fmesh, 'Lagrange', 5)
 
 
     def u0_boundary(x, on_boundary):
@@ -91,15 +91,14 @@ for i in range(30):
     if ene < 0.2:
         print len(mesh.get_nodes()), len(mesh.get_faces()), ene
 
-    if ene < 0.065:
+    if ene < 0.05:
         break
 
 
-    errors_now, _ = computeErrorsOnCells(u2, u, FunctionSpace(fmesh, 'Lagrange', 5), fmesh)
+    errors_now = compute_energy_errors_on_cells(u2, u, Ve, fmesh)
 
-    errors_now, _ = estimateErrorWithExactSolution(u_e, u, Ve, fmesh)
     if i == 0:
-        mesh.refine_all_with_bigger_error(errors_now, 1e-7, refine_method='longest')
+        mesh.refine_all()
         p, t = mesh.get_nodes(), mesh.get_faces()
         #dm.simpplot(p, t, annotate="")
         #plt.show()
@@ -109,11 +108,12 @@ for i in range(30):
         p, t = mesh.get_nodes(), mesh.get_faces()
         #dm.simpplot(p, t, annotate="")
         #plt.show()
-        mesh.adaptive_refine(errors_old, errors_now)
+        mesh.adaptive_refine(errors_old, errors_now, ratio=0.4)
         #mesh.refine_all_by_longest_edge()
 
 
     errors_old = errors_now
+
 print "#nodes = ", len(mesh.get_nodes()), "#triangles = " , len(mesh.get_faces())
 output.close()
 

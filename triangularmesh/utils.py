@@ -47,12 +47,11 @@ def energy_errornorm(u_e, u, Ve):
 
 
 def estimateErrorWithExactSolution(u_e, u, Ve, mesh):
-    return computeErrorsOnCells(u_e, u, Ve, mesh)
+    return compute_energy_errors_on_cells(u_e, u, Ve, mesh)
 
 
-def computeErrorsOnCells(u_e, u, Ve, mesh):
+def compute_energy_errors_on_cells(u_e, u, Ve, mesh):
     energy_errors = []
-    l2_errors = []
 
     u_Ve = interpolate(u, Ve)
     u_e_Ve = interpolate(u_e, Ve)
@@ -70,11 +69,47 @@ def computeErrorsOnCells(u_e, u, Ve, mesh):
         error = inner(nabla_grad(e_Ve), nabla_grad(e_Ve))*dx(1)
         energy_errors.append(sqrt(assemble(error)))
 
+    return energy_errors
+
+def compute_l2_errors_on_cells(u_e, u, Ve, mesh):
+    l2_errors = []
+
+    u_Ve = interpolate(u, Ve)
+    u_e_Ve = interpolate(u_e, Ve)
+    e_Ve = Function(Ve)
+    e_Ve.vector()[:] = u_e_Ve.vector().array()-u_Ve.vector().array()
+
+    cell_domains = CellFunction('size_t', mesh)
+
+    for cell in cells(mesh):
+        cell_domains.set_all(0)
+        cell_domains[cell] = 1
+
+        dx = Measure('dx')[cell_domains]
+
         error = e_Ve**2*dx(1)
         l2_errors.append(sqrt(assemble(error)))
 
-    return energy_errors, l2_errors
+    return l2_errors
 
+def compute_residual_errors_on_cells(u, f, Ve, mesh):
+    residuals = []
+
+    cell_domains = CellFunction('size_t', mesh)
+    u_Ve = interpolate(u, Ve)
+
+    for cell in cells(mesh):
+        cell_domains.set_all(0)
+        cell_domains[cell] = 1
+
+        dx = Measure('dx')[cell_domains]
+
+        error = (inner(nabla_grad(u_Ve), nabla_grad(u_Ve))-f)*dx(1, domain=mesh)
+        err = assemble(error)
+        residuals.append(abs(err))
+
+
+    return residuals
 
 def computeSolution(u0, f, mesh, degree, u_e = None, degree_rise = 0):
     V = FunctionSpace(mesh, 'Lagrange', degree)

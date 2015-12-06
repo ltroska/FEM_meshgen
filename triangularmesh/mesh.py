@@ -137,7 +137,7 @@ class TriangularMesh(object):
         file1 << mesh
         file2 << sub_domains
 
-    def adaptive_refine(self, errors_prev, errors_now, ratio=0.2, acceptable_error=1e-5):
+    def adaptive_refine(self, errors_prev, errors_now, ratio=0.2, acceptable_error=1e-15):
         """adaptively refines the mesh using the Babuska-Rheinboldt strategy"""
         triangles_to_refine = []
         num_triangles_needed = int(ceil(ratio * len(self.face_list)))
@@ -154,7 +154,7 @@ class TriangularMesh(object):
             if child_error < acceptable_error:
                 continue
 
-            if abs(parent_diameter - child_diameter) < 1e-6:
+            if abs(parent_diameter - child_diameter) < 1e-15:
                 child_diameter = parent_diameter / sqrt(2)
             try:
                 lbda = (log(child_error) - log(parent_error)) / (log(child_diameter) - log(parent_diameter))
@@ -165,7 +165,6 @@ class TriangularMesh(object):
                 pass
 
         triangles_to_refine = np.array(triangles_to_refine)
-        triangles_to_refine = triangles_to_refine[triangles_to_refine < 2]
         largest_estimated_error = max(triangles_to_refine)
 
         triangles_to_refine = []
@@ -192,6 +191,25 @@ class TriangularMesh(object):
         for tr in triangles:
             pmid = (p[t[tr][0]] + p[t[tr][1]] + p[t[tr][2]]) / 3
             p = np.append(p, [pmid], axis=0)
+
+        self.edge_length /= 2
+        dp = self.edge_length
+
+        for i in range(1,int(ceil(1/dp))):
+            p = np.append(p, [[i*dp, 0]], axis=0)
+        for i in range(int(ceil(.5/dp))):
+            p = np.append(p, [[1, i*dp]], axis=0)
+        for i in range(int(ceil(.5/dp))):
+            p = np.append(p, [[1-i*dp, .5]], axis=0)
+        for i in range(int(ceil(.5/dp))):
+            p = np.append(p, [[.5, .5+i*dp]], axis=0)
+        for i in range(int(ceil(.5/dp))):
+            p = np.append(p, [[.5-i*dp, 1]], axis=0)
+        for i in range(int(ceil(1/dp))):
+            p = np.append(p, [[0, 1-i*dp]], axis=0)
+
+        p = unique2d(p)
+
         t = spspatial.Delaunay(p).vertices
         # remove triangles where centroid outside boundary (good enough...)
         pmid = p[t].sum(1) / 3
@@ -229,12 +247,13 @@ class TriangularMesh(object):
         xmin, xmax, ymin, ymax = bounding_box
         mesh = TriangularMesh()
 
+
         # make grid
         x, y = np.mgrid[xmin:(xmax + edge_length):edge_length,
                ymin:ymax + edge_length:edge_length]
 
         # shift even rows
-        x[:, 1::2] += edge_length / 2
+        #x[:, 0::2] += edge_length / 2
 
         p = np.vstack((x.flat, y.flat)).T
 
@@ -248,14 +267,22 @@ class TriangularMesh(object):
             p = unique2d(p)
 
         # triangulation
+        t = np.array([[0,0,0]])
+        for idx in range(len(p)):
+            t = np.append(t, [[idx, idx+1, int(idx+ymax/edge_length)+2]], axis=0)
+            if idx > 10:
+                break
+
+
         t = spspatial.Delaunay(p).vertices
 
-        # remove triangles where centroid outside boundary (good enough...)
         pmid = p[t].sum(1) / 3
         t = t[distance_function(pmid) < geps]
+        # print distance_function(p[t].sum(1)/3)
 
         mesh.set_mesh(p, t)
         mesh.fd = distance_function
+        mesh.edge_length = edge_length
         return mesh
 
     @staticmethod
@@ -277,7 +304,7 @@ class TriangularMesh(object):
                ymin:(ymax + edge_length * np.sqrt(3) / 2):edge_length * np.sqrt(3) / 2]
 
         # shift even rows
-        x[:, 1::2] += edge_length / 2
+        #x[:, 1::2] += edge_length / 2
 
         p = np.vstack((x.flat, y.flat)).T
 

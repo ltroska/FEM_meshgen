@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 
 mesh = TriangularMesh()
 
+
 class ExactSolution(Expression):
-    def eval(self,values, x):
-        values[0] = (math.cosh(10*(1-x[0]))+ math.cosh(10*(1-x[1])))/(2* math.cosh(10))
+    def eval(self, values, x):
+        values[0] = math.atan((2*x[1]-0.5)/(x[0]+0.01))
         return values
 
 dp = 0.1
@@ -33,19 +34,22 @@ fd2 = lambda p: dm.drectangle0(p, 0,1, 0,1)
 mesh = TriangularMesh.create_uniform_mesh(fd, [0,1,0,1], .1, pv).to_dolfin_mesh()
 V = FunctionSpace(mesh, "Lagrange", 1)
 
-# Define boundary condition
+
+# Define boundary conditions
+u0 = ExactSolution()
+u_e = u0
+
+
 def u0_boundary(x, on_boundary):
     return on_boundary
 
-u0 = ExactSolution()
 bc = DirichletBC(V, u0, u0_boundary)
 
-# Define variational problem
 u = TrialFunction(V)
 v = TestFunction(V)
 f = Constant(0)
-a = inner(grad(u), grad(v))*dx()+100*u*v*dx
-L = f*v*dx()
+a = inner(nabla_grad(u), nabla_grad(v))*dx
+L = f*v*dx
 
 # Define function for the solution
 u = Function(V)
@@ -54,7 +58,8 @@ u = Function(V)
 M = u*dx()
 
 # Define error tolerance
-tol = 0.00002
+#tol = 0.00005
+tol = 0.000000001
 
 # Solve equation a = L with respect to u and the given boundary
 # conditions, such that the estimated error (measured in M) is less
@@ -62,12 +67,12 @@ tol = 0.00002
 problem = LinearVariationalProblem(a, L, u, bc)
 solver = AdaptiveLinearVariationalSolver(problem, M)
 solver.parameters["error_control"]["dual_variational_solver"]["linear_solver"] = "cg"
-solver.parameters["error_control"]["dual_variational_solver"]["symmetric"] = True
 solver.solve(tol)
 
 solver.summary()
 
-print errornorm(u0, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
+print errornorm(u_e, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
 
-file = File('meshes/fenics_refine_cosh.pvd')
-file << mesh.leaf_node()
+plot(u.leaf_node())
+interactive()
+
