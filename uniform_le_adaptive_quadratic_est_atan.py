@@ -6,9 +6,12 @@ from dolfin import *
 import math
 import matplotlib.pyplot as plt
 
+eps = np.finfo(float).eps
+
 class ExactSolution(Expression):
-    def eval(self,values, x):
-        values[0] = (math.cosh(10*(1-x[0]))+ math.cosh(10*(1-x[1])))/(2* math.cosh(10))
+    def eval(self, values, xr):
+        x, y = xr[0], xr[1]
+        values[0] = (((((1 - x) - 0.5)**2 + (y - 0.5-eps)**2))**(1./2))**(2./3)*math.sin(2*(math.atan2((y - 0.5-eps),((1 - x) - 0.5))/3. + math.pi/3.))
         return values
 
 mesh = TriangularMesh()
@@ -42,12 +45,12 @@ maxerr = 0.2
 
 errors_old = []
 
-output = file("convergence/uniform_le_adaptive_quadratic_cosh.dat", 'w')
+output = file("convergence/uniform_le_adaptive_quadratic_atan.dat", 'w')
 
 
 for i in range(30):
     fmesh = mesh.to_dolfin_mesh()
-    file = File('meshes/uniform_le_adaptive_quadratic_cosh_'+str(i)+'.pvd')
+    file = File('meshes/uniform_le_adaptive_quadratic_atan_'+str(i)+'.pvd')
     file << fmesh
 
     V = FunctionSpace(fmesh, 'Lagrange', 1)
@@ -66,7 +69,7 @@ for i in range(30):
     u = TrialFunction(V)
     v = TestFunction(V)
     f = Constant(0)
-    a = inner(grad(u), grad(v))*dx()+100*u*v*dx
+    a = inner(grad(u), grad(v))*dx()
     L = f*v*dx
 
     # Compute solution
@@ -76,7 +79,7 @@ for i in range(30):
 
     u2 = TrialFunction(V2)
     v = TestFunction(V2)
-    a = inner(nabla_grad(u2), nabla_grad(v))*dx()+100*u2*v*dx
+    a = inner(nabla_grad(u2), nabla_grad(v))*dx
     L = f*v*dx
     u2 = Function(V2)
     solve(a == L, u2, bc)
@@ -88,10 +91,10 @@ for i in range(30):
 
     output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
 
-    if ene < 0.2:
+    if ene < 0.1:
         print len(mesh.get_nodes()), len(mesh.get_faces()), ene
 
-    if ene < 0.05:
+    if ene < 0.015:
         break
 
 
@@ -108,7 +111,7 @@ for i in range(30):
         p, t = mesh.get_nodes(), mesh.get_faces()
         #dm.simpplot(p, t, annotate="")
         #plt.show()
-        mesh.adaptive_refine(errors_old, errors_now, ratio=0.4)
+        mesh.adaptive_refine(errors_old, errors_now, ratio=0.2)
         #mesh.refine_all_by_longest_edge()
 
 

@@ -6,9 +6,12 @@ from triangularmesh.meshquality import *
 from dolfin import *
 import math
 
+eps = np.finfo(float).eps
+
 class ExactSolution(Expression):
-    def eval(self, values, x):
-        values[0] = math.atan((2*x[1]-0.5)/(x[0]+0.01))
+    def eval(self, values, xr):
+        x, y = xr[0], xr[1]
+        values[0] = (((((1 - x) - 0.5)**2 + (y - 0.5-eps)**2))**(1./2))**(2./3)*math.sin(2*(math.atan2((y - 0.5-eps),((1 - x) - 0.5))/3. + math.pi/3.))
         return values
 
 mesh = TriangularMesh()
@@ -81,7 +84,7 @@ for i in range(100):
 
     output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
 
-    if ene < 0.2:
+    if ene < 0.015:
         break
 
     errors_now = compute_residual_errors_on_cells(u, f, Ve, fmesh)
@@ -96,7 +99,7 @@ for i in range(100):
         p, t = mesh.get_nodes(), mesh.get_faces()
         #dm.simpplot(p, t, annotate="")
         #plt.show()
-        mesh.adaptive_refine(errors_old, errors_now, ratio = 0.4)
+        mesh.adaptive_refine(errors_old, errors_now, ratio = 0.2)
         #mesh.refine_all_by_longest_edge()
 
 
