@@ -30,9 +30,6 @@ for i in range(5):
     fd = lambda p: dm.dpoly(p, pv)
     fh = lambda p: 7.5*(p[:,0]-0.5)**2+7.5*(p[:,1]-0.5)**2+1
 
-	
-	TriangularMesh.create_quasi_random_mesh(fd, [0,1,0,1], int(ceil(1/(h*h))), 2, 3, pv)
-
     tmp = TriangularMesh.create_bad_uniform_mesh(fd, [0,1,0,1], h2)
     meshes.append([tmp, "bad uniform_"+str(len(tmp.get_nodes()))])
 
