@@ -83,7 +83,7 @@ for i in range(10):
     output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
 
 
-    if ene < 0.015:
+    if ene < 0.03:
         break
 
 print "#nodes = ", len(mesh.get_nodes()), "#triangles = " , len(mesh.get_faces())

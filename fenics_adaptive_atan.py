@@ -76,6 +76,7 @@ solver.summary()
 
 print errornorm(u_e, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
 
-#plot(u.leaf_node())
-#interactive()
+plot(u.leaf_node())
+plot(grad(u.leaf_node()))
+interactive()
 

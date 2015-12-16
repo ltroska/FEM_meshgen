@@ -74,6 +74,8 @@ def compute_aspect_ratio(mesh):
 
         local_max = max(max(ab,ac), bc)
 
+        if inradius == 0:
+            inradius = 1e-12
 
         aspect_ratio = local_max/(2*math.sqrt(3)*inradius)
 
@@ -148,7 +150,11 @@ def compute_skewness(mesh):
         half_circumference = (ab+ac+bc)/2.
         area = math.sqrt(half_circumference*(half_circumference-ab)*(half_circumference-ac)*(half_circumference-bc))
 
+        if area==0:
+            area= 1e-12
+
         circumscribed_circle_r = ab*ac*bc/(4.*area)
+
 
         a = math.sqrt(3)*circumscribed_circle_r
         optimal_area = math.sqrt(3)/4. * a*a

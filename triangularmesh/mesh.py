@@ -84,7 +84,7 @@ class TriangularMesh(object):
 
         return mesh
 
-    def save_to_file(self, filename):
+    def save_to_file(self, filename, eps = DOLFIN_EPS):
         """saves mesh to "filename".xml, boundaries are saved to "filename"_facets.xml"""
         file1 = File(filename + '.xml')
         file2 = File(filename + '_facets.xml')
@@ -93,27 +93,27 @@ class TriangularMesh(object):
 
         class LeftBoundary(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and x[0] < DOLFIN_EPS
+                return on_boundary and x[0] < eps
 
         class BottomBoundary(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and (x[1] < DOLFIN_EPS)
+                return on_boundary and (x[1] < eps)
 
         class RightBoundaryVertical(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and x[0] > 1 - DOLFIN_EPS and x[1] < 0.5
+                return on_boundary and x[0] > 1 - eps and x[1] <= 0.5+eps
 
         class RightBoundaryHorizontal(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and x[0] > 0.5 and abs(x[1]-0.5) <= DOLFIN_EPS
+                return on_boundary and x[0] >= 0.5-eps and x[1] >= 0.5 -eps
 
         class TopBoundaryHorizontal(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and x[1] > 1- DOLFIN_EPS and x[0] < 0.5
+                return on_boundary and x[1] >= 1- eps and x[0] <= 0.5+eps
 
         class TopBoundaryVertical(SubDomain):
             def inside(self, x, on_boundary):
-                return on_boundary and x[1] >= 0.5 - DOLFIN_EPS and x[0] >= 0.5 - DOLFIN_EPS
+                return on_boundary and x[1] >= 0.5 -eps and x[0] <= 0.5+eps
 
         # compute topology by calling mesh.topology()
 
@@ -121,10 +121,6 @@ class TriangularMesh(object):
         sub_domains = MeshFunction("size_t", mesh, 1)
 
         sub_domains.set_all(0)
-        leftboundary = LeftBoundary()
-        leftboundary.mark(sub_domains, 1)
-        bottomboundary = BottomBoundary()
-        bottomboundary.mark(sub_domains, 2)
         rightboundaryvert = RightBoundaryVertical()
         rightboundaryvert.mark(sub_domains, 3)
         rightboundaryhoriz = RightBoundaryHorizontal()
@@ -133,6 +129,10 @@ class TriangularMesh(object):
         topboundaryhoriz.mark(sub_domains, 5)
         topboundaryvert =TopBoundaryVertical()
         topboundaryvert.mark(sub_domains, 6)
+        leftboundary = LeftBoundary()
+        leftboundary.mark(sub_domains, 1)
+        bottomboundary = BottomBoundary()
+        bottomboundary.mark(sub_domains, 2)
 
         file1 << mesh
         file2 << sub_domains
@@ -258,7 +258,7 @@ class TriangularMesh(object):
         p = np.vstack((x.flat, y.flat)).T
 
         # remove points outside boundary
-        p = p[distance_function(p) < -geps]
+        p = p[distance_function(p) < geps]
 
         # add fixed points
         if fixed_points is not None:
@@ -266,12 +266,52 @@ class TriangularMesh(object):
             p = np.vstack((fixed_points, p))
             p = unique2d(p)
 
-        # triangulation
-        t = np.array([[0,0,0]])
-        for idx in range(len(p)):
-            t = np.append(t, [[idx, idx+1, int(idx+ymax/edge_length)+2]], axis=0)
-            if idx > 10:
-                break
+
+        t = spspatial.Delaunay(p).vertices
+
+        pmid = p[t].sum(1) / 3
+        t = t[distance_function(pmid) < -1e-12]
+        # print distance_function(p[t].sum(1)/3)
+
+        mesh.set_mesh(p, t)
+        mesh.fd = distance_function
+        mesh.edge_length = edge_length
+        return mesh
+
+    @staticmethod
+    def create_bad_uniform_mesh(distance_function, bounding_box, edge_length, fixed_points=None):
+        """
+        distance_function > 0 outside, <0 inside, =0 boundary
+        bounding box = [xmin, xmax, ymin, ymax, ...]
+        edge_length = desired edge length of triangle
+        fixed points = clear
+        """
+        geps = .001 * edge_length
+
+        xmin, xmax, ymin, ymax = bounding_box
+        mesh = TriangularMesh()
+
+
+        dx = edge_length/5.
+        dy = edge_length*5.
+
+        # make grid
+        x, y = np.mgrid[xmin:(xmax + dx):dx,
+               ymin:ymax + dy:dy]
+
+        # shift even rows
+        #x[:, 0::2] += edge_length / 2
+
+        p = np.vstack((x.flat, y.flat)).T
+
+        # remove points outside boundary
+        p = p[distance_function(p) < geps]
+
+        # add fixed points
+        if fixed_points is not None:
+            fixed_points = np.array(fixed_points, dtype='d')
+            p = np.vstack((fixed_points, p))
+            p = unique2d(p)
 
 
         t = spspatial.Delaunay(p).vertices
@@ -330,7 +370,7 @@ class TriangularMesh(object):
 
         # remove triangles where centroid outside boundary (good enough...)
         pmid = p[t].sum(1) / 3
-        t = t[distance_function(pmid) < geps]
+        t = t[distance_function(pmid) < -1e-12]
         # print distance_function(p[t].sum(1)/3)
 
         mesh.set_mesh(p, t)
@@ -723,6 +763,16 @@ class TriangularMesh(object):
 
         a, b= two_nearest([0.52, 0.5], p)
         t = np.append(t, [[len(p)-1, a,b]], axis=0)
+
+
+        p = np.append(p , [[0.5, 1]], axis=0)
+        a, b= two_nearest([0.5, 1], p)
+        t = np.append(t, [[len(p)-1, a,b]], axis=0)
+
+        p = np.append(p, [[1,0.5]], axis=0)
+        a, b= two_nearest([1, 0.5], p)
+        t = np.append(t, [[len(p)-1, a,b]], axis=0)
+
 
         # remove triangles with centroid outside domain
         pmid = p[t].sum(1) / 3

@@ -1,40 +1,76 @@
 from triangularmesh.mesh import *
+from triangularmesh.utils import *
 from triangularmesh.meshquality import *
 import matplotlib.pyplot as plt
 
 from math import *
+import sys
 
-def solve_problem(mesh):
-    mesh = mesh.to_dolfin_mesh()
+def solve_problem(dmesh, ref = False):
 
 
-    V = FunctionSpace(mesh, 'Lagrange', 1)
 
     # Define boundary conditions
     u0 = Expression("0.3*sin(10*(x[0]-0.1)*(x[1]+0.2))")
     u_e = u0
 
-    def u0_boundary(x, on_boundary):
-        return on_boundary
+    errors_old = []
+    i = 0
 
-    bc = DirichletBC(V, u0, u0_boundary)
+    while True:
+        def u0_boundary(x, on_boundary):
+            return on_boundary
 
-    # Define variational problem
-    u = TrialFunction(V)
-    v = TestFunction(V)
-    f = Expression("-0.3*100*(-0.1+x[0])*(-0.1+x[0])*sin(10*(-0.1+x[0])*(0.2+x[1]))-0.3*100*(0.2+x[1])*(0.2+x[1])*sin(10*(-0.1+x[0])*(0.2+x[1]))")
+        mesh = dmesh.to_dolfin_mesh()
 
-    a = -inner(nabla_grad(v), nabla_grad(u))*dx
-    L = f*v*dx
+        plot(mesh)
+        interactive()
 
-    # Compute solution
-    u = Function(V)
-    solve(a == L, u, bc)
+        V = FunctionSpace(mesh, 'Lagrange', 1)
+        Ve = FunctionSpace(mesh, 'Lagrange', 5)
 
-    l2 = errornorm(u_e, u, norm_type='L2', degree_rise=3)
-    ene = errornorm(u_e, u, norm_type='H10', degree_rise=3)
-    print "L2 error = ", l2, " Energieerror = ", ene
+        bc = DirichletBC(V, u0, u0_boundary)
 
+        # Define variational problem
+        u = TrialFunction(V)
+        v = TestFunction(V)
+        f = Expression("-0.3*100*(-0.1+x[0])*(-0.1+x[0])*sin(10*(-0.1+x[0])*(0.2+x[1]))-0.3*100*(0.2+x[1])*(0.2+x[1])*sin(10*(-0.1+x[0])*(0.2+x[1]))")
+
+        a = -inner(nabla_grad(v), nabla_grad(u))*dx
+        L = f*v*dx
+
+        # Compute solution
+        u = Function(V)
+        solve(a == L, u, bc)
+
+        errors_now = compute_residual_errors_on_cells(u, f, Ve, mesh)
+
+        if i == 0:
+            dmesh.refine_all()
+            p, t = dmesh.get_nodes(), dmesh.get_faces()
+        else:
+            print len(dmesh.get_faces()), len(errors_now)
+            p, t = dmesh.get_nodes(), dmesh.get_faces()
+            dmesh.adaptive_refine(errors_old, errors_now, ratio=0.1)
+
+        l2 = errornorm(u_e, u, norm_type='L2', degree_rise=3)
+        ene = errornorm(u_e, u, norm_type='H10', degree_rise=3)
+        u_Ve = interpolate(u, Ve)
+        error = (-inner(nabla_grad(u_Ve), nabla_grad(u_Ve))-f)*dx(domain=mesh)
+        err = assemble(error)
+        print "L2 error = ", l2, " Energieerror = ", ene, " Residual = ", err
+
+        i += 1
+
+        if not ref:
+            break
+
+        if ref and len(dmesh.get_nodes()) > 225:
+            dm.simpplot(dmesh.get_nodes(), dmesh.get_faces())
+            plt.show()
+            break
+
+        errors_old = errors_now
 
 
 dp = 0.1
@@ -61,6 +97,7 @@ fd2 = lambda p: np.maximum(dm.drectangle0(p, 0,1, 0,1), -dm.drectangle0(p, 0.5,1
 
 meshes = []
 
+meshes.append([TriangularMesh.create_bad_uniform_mesh(fd, [0,1,0,1], 0.05), "bad uniform"])
 meshes.append([TriangularMesh.create_equilateral_uniform_mesh(fd, [0, 1, 0, 1],0.075, pv), "uniform"])
 meshes.append([TriangularMesh.create_elliptic_mesh(15, Expression("4*x[0]+x[1]"), Expression("x[0]+4*x[1]"), fd), "elliptic"])
 meshes.append([TriangularMesh.create_quasi_random_mesh(fd, [0,1,0,1], 185, 2, 3, pv), "quasi-random"])
@@ -72,9 +109,6 @@ meshes.append([TriangularMesh.create_spring_based_mesh(fd2, [0,1,0,1], 0.035, pv
 for item in meshes:
     mesh, name = item
 
-    if name == "uniform":
-        dm.simpplot(mesh.get_nodes(), mesh.get_faces())
-        plt.show()
     print name, len(mesh.get_nodes())
     print "minimum angle " , compute_minimum_angle(mesh)
     print "aspect ratio " , compute_aspect_ratio(mesh)
