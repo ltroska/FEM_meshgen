@@ -82,7 +82,7 @@ for i in range(30):
     if ene < 0.2:
         print len(mesh.get_nodes()), len(mesh.get_faces()), ene
 
-    if ene < 0.05:
+    if ene < 0.047:
         break
 
 

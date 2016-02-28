@@ -59,7 +59,7 @@ M = u*dx()
 
 # Define error tolerance
 #tol = 0.00005
-tol = 0.000000001
+tol = 0.0008
 
 # Solve equation a = L with respect to u and the given boundary
 # conditions, such that the estimated error (measured in M) is less
@@ -74,6 +74,6 @@ solver.summary()
 print errornorm(u_e, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
 print errornorm(u_e, u.leaf_node(), norm_type='L2', degree_rise=3), len(mesh.leaf_node().coordinates())
 
-plot(u.leaf_node())
-interactive()
+#plot(u.leaf_node())
+#interactive()
 

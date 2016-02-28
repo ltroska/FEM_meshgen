@@ -54,7 +54,7 @@ u = Function(V)
 M = u*dx()
 
 # Define error tolerance
-tol = 0.00002
+tol = 0.00004
 
 # Solve equation a = L with respect to u and the given boundary
 # conditions, such that the estimated error (measured in M) is less
