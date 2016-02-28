@@ -258,7 +258,7 @@ class TriangularMesh(object):
         p = np.vstack((x.flat, y.flat)).T
 
         # remove points outside boundary
-        p = p[distance_function(p) < geps]
+        p = p[distance_function(p) < -geps]
 
         # add fixed points
         if fixed_points is not None:
