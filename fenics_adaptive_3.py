@@ -72,6 +72,7 @@ solver.solve(tol)
 solver.summary()
 
 print errornorm(u_e, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
+print errornorm(u_e, u.leaf_node(), norm_type='L2', degree_rise=3), len(mesh.leaf_node().coordinates())
 
 plot(u.leaf_node())
 interactive()

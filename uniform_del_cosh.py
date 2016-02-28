@@ -75,7 +75,7 @@ for i in range(10):
     ene = errornorm(u_e, u, norm_type='H10', degree_rise=3)
     print "L2 error = ", l2
     print "Energy error = ", ene
-    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
+    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+ " " + str(l2) + "\n")
 
     if ene < 0.05:
         break

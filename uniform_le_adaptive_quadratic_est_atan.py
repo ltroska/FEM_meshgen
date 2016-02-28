@@ -89,7 +89,7 @@ for i in range(30):
     print "L2 error = ", l2
     print "Energy error = ", ene
 
-    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
+    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+ " " + str(l2) + "\n")
 
     if ene < 0.1:
         print len(mesh.get_nodes()), len(mesh.get_faces()), ene

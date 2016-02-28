@@ -68,6 +68,7 @@ solver.solve(tol)
 solver.summary()
 
 print errornorm(u0, u.leaf_node(), norm_type='H10', degree_rise=3), len(mesh.leaf_node().coordinates())
+print errornorm(u0, u.leaf_node(), norm_type='L2', degree_rise=3), len(mesh.leaf_node().coordinates())
 
 file = File('meshes/fenics_refine_cosh.pvd')
 file << mesh.leaf_node()

@@ -77,7 +77,7 @@ for i in range(10):
     print "Energy error = ", ene
 
 
-    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+"\n")
+    output.write(str(len(mesh.get_nodes()))+" "+str(len(mesh.get_faces()))+" "+str(ene)+ " " + str(l2) + "\n")
 
 
     if ene < 0.1:
